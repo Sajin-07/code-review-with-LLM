@@ -1,0 +1,133 @@
+"""
+Token routing pre-flight check (Minimax era).
+
+Minimax m2.5 has a 65,536-token context window, so the old qwen3-calibrated
+thresholds (6k/20k/28k/reject) are replaced with:
+
+  < 5,000 code tokens    -> send_as_is        (single call, any mode)
+  5,000-50,000           -> single_or_two_pass (single call for review;
+                                                two-pass for update mode)
+  50,000-60,000          -> chunk_by_class    (review only — too big for
+                                                comfortable single call)
+  > 60,000               -> reject            (show error before sending)
+
+These translate roughly to: 500 lines / 4,000 lines / 6,000 lines of Java.
+Chunking is only reached for genuinely enormous inputs — the vast majority
+of real-world reviews fall into send_as_is or single_or_two_pass.
+"""
+
+import tiktoken
+
+_enc = tiktoken.get_encoding("cl100k_base")
+
+# ---- Constants (tunable) ---------------------------------------------------
+
+# Matches plan §3 "Fixed overhead":
+#   ~700 (system) + ~1,200 (RAG) + ~150 (call graph) + ~100 (custom rules) ≈ 2,150
+FIXED_OVERHEAD_TOKENS = 2_150
+
+# Thresholds measured in *code* tokens (not total, not line count).
+SEND_AS_IS_MAX = 5_000     # < 5k code tokens: always single call
+SINGLE_CALL_MAX = 50_000   # 5k-50k: single call for review; 2-pass for update
+CHUNK_MAX = 60_000         # 50k-60k: review only, chunked at class boundary
+# > 60k: reject
+
+
+def count_tokens(text: str) -> int:
+    return len(_enc.encode(text))
+
+
+def route_by_token_count(
+    code: str,
+    system_prompt_tokens: int = 700,
+    rag_tokens: int = 1_200,
+    mode: str = "no",
+) -> dict:
+    """
+    Determine how to handle the input.
+
+    Args:
+        code:                  the submitted source code
+        system_prompt_tokens:  approximate system prompt size (default 700)
+        rag_tokens:            approximate RAG context size (default 1200 —
+                               the new budget, up from 600)
+        mode:                  "no" | "yes" | "update" — affects which route
+                               is chosen in the 5k-50k band
+
+    Returns:
+        {
+            "route":        "send_as_is" | "single_call" | "two_pass" |
+                            "chunk_by_class" | "reject",
+            "code_tokens":  int,
+            "total_tokens": int,
+            "reason":       str,
+            "line_count":   int,
+        }
+    """
+    code_tokens = count_tokens(code)
+    line_count = len(code.split("\n"))
+    question_tokens = 20
+    total = system_prompt_tokens + rag_tokens + code_tokens + question_tokens
+
+    if code_tokens < SEND_AS_IS_MAX:
+        return {
+            "route": "send_as_is",
+            "code_tokens": code_tokens,
+            "total_tokens": total,
+            "line_count": line_count,
+            "reason": (
+                f"{code_tokens} code tokens ({line_count} lines) -- "
+                f"well within single-call budget."
+            ),
+        }
+
+    if code_tokens < SINGLE_CALL_MAX:
+        # In the 5k-50k band, behaviour depends on mode:
+        #   - review only / suggest: single call is fine
+        #   - update mode:          use the 2-pass approach so update max_tokens
+        #                           stays reasonable (plan §4)
+        if mode == "update":
+            return {
+                "route": "two_pass",
+                "code_tokens": code_tokens,
+                "total_tokens": total,
+                "line_count": line_count,
+                "reason": (
+                    f"{code_tokens} code tokens ({line_count} lines) in update "
+                    f"mode -- use 2-pass (review -> function selector -> fix)."
+                ),
+            }
+        return {
+            "route": "single_call",
+            "code_tokens": code_tokens,
+            "total_tokens": total,
+            "line_count": line_count,
+            "reason": (
+                f"{code_tokens} code tokens ({line_count} lines) -- single "
+                f"call fits in minimax's 65k window."
+            ),
+        }
+
+    if code_tokens < CHUNK_MAX:
+        return {
+            "route": "chunk_by_class",
+            "code_tokens": code_tokens,
+            "total_tokens": total,
+            "line_count": line_count,
+            "reason": (
+                f"{code_tokens} code tokens ({line_count} lines) -- too large "
+                f"for a single call. Review-only, chunked at class boundary."
+            ),
+        }
+
+    return {
+        "route": "reject",
+        "code_tokens": code_tokens,
+        "total_tokens": total,
+        "line_count": line_count,
+        "reason": (
+            f"Input too large (~{code_tokens:,} code tokens, {line_count:,} "
+            f"lines). Max is ~{CHUNK_MAX:,} tokens (~6,000 lines). "
+            f"Paste a single class or file."
+        ),
+    }

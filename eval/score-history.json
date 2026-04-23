@@ -1,0 +1,561 @@
+[
+  {
+    "timestamp": "2026-04-13T10:30:58.188833",
+    "tag": "baseline",
+    "avg_score": 0.708,
+    "java_score": 0.69,
+    "ts_score": 0.727,
+    "passed": 15,
+    "failed": 5,
+    "errors": 0,
+    "true_positives": 42,
+    "total_expected": 47,
+    "false_positives": 4,
+    "total_should_not": 21,
+    "results": [
+      {
+        "id": "java-tc-01",
+        "status": "fail",
+        "true_positives": 2,
+        "expected_count": 2,
+        "false_positives": 1,
+        "should_not_count": 1,
+        "issues_found": 4,
+        "score": 0.0,
+        "expected_detail": [
+          {
+            "keyword": "field injection",
+            "found": true
+          },
+          {
+            "keyword": "constructor injection",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "naming convention",
+            "found": true
+          }
+        ]
+      },
+      {
+        "id": "java-tc-02",
+        "status": "pass",
+        "true_positives": 2,
+        "expected_count": 2,
+        "false_positives": 0,
+        "should_not_count": 1,
+        "issues_found": 5,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "entity",
+            "found": true
+          },
+          {
+            "keyword": "DTO",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "field injection",
+            "found": false
+          }
+        ]
+      },
+      {
+        "id": "java-tc-03",
+        "status": "pass",
+        "true_positives": 3,
+        "expected_count": 3,
+        "false_positives": 0,
+        "should_not_count": 1,
+        "issues_found": 5,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "generic",
+            "found": true
+          },
+          {
+            "keyword": "catch",
+            "found": true
+          },
+          {
+            "keyword": "Exception",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "field injection",
+            "found": false
+          }
+        ]
+      },
+      {
+        "id": "java-tc-04",
+        "status": "pass",
+        "true_positives": 1,
+        "expected_count": 1,
+        "false_positives": 0,
+        "should_not_count": 1,
+        "issues_found": 4,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "null",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "field injection",
+            "found": false
+          }
+        ]
+      },
+      {
+        "id": "java-tc-05",
+        "status": "pass",
+        "true_positives": 3,
+        "expected_count": 3,
+        "false_positives": 0,
+        "should_not_count": 1,
+        "issues_found": 5,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "business logic",
+            "found": true
+          },
+          {
+            "keyword": "controller",
+            "found": true
+          },
+          {
+            "keyword": "service",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "field injection",
+            "found": false
+          }
+        ]
+      },
+      {
+        "id": "java-tc-06",
+        "status": "pass",
+        "true_positives": 1,
+        "expected_count": 2,
+        "false_positives": 0,
+        "should_not_count": 1,
+        "issues_found": 5,
+        "score": 0.5,
+        "expected_detail": [
+          {
+            "keyword": "naming",
+            "found": false
+          },
+          {
+            "keyword": "intention",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "field injection",
+            "found": false
+          }
+        ]
+      },
+      {
+        "id": "java-tc-07",
+        "status": "pass",
+        "true_positives": 2,
+        "expected_count": 2,
+        "false_positives": 0,
+        "should_not_count": 2,
+        "issues_found": 2,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "@Valid",
+            "found": true
+          },
+          {
+            "keyword": "validation",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "field injection",
+            "found": false
+          },
+          {
+            "keyword": "constructor injection",
+            "found": false
+          }
+        ]
+      },
+      {
+        "id": "java-tc-08",
+        "status": "pass",
+        "true_positives": 2,
+        "expected_count": 2,
+        "false_positives": 0,
+        "should_not_count": 1,
+        "issues_found": 3,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "hardcoded",
+            "found": true
+          },
+          {
+            "keyword": "URL",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "field injection",
+            "found": false
+          }
+        ]
+      },
+      {
+        "id": "java-tc-09",
+        "status": "fail",
+        "true_positives": 0,
+        "expected_count": 3,
+        "false_positives": 0,
+        "should_not_count": 2,
+        "issues_found": 1,
+        "score": 0.0,
+        "expected_detail": [
+          {
+            "keyword": "status",
+            "found": false
+          },
+          {
+            "keyword": "201",
+            "found": false
+          },
+          {
+            "keyword": "CREATED",
+            "found": false
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "field injection",
+            "found": false
+          },
+          {
+            "keyword": "@Valid",
+            "found": false
+          }
+        ]
+      },
+      {
+        "id": "java-tc-10",
+        "status": "fail",
+        "true_positives": 0,
+        "expected_count": 0,
+        "false_positives": 0,
+        "should_not_count": 3,
+        "issues_found": 3,
+        "score": 0.4,
+        "expected_detail": [],
+        "false_positive_detail": [
+          {
+            "keyword": "field injection",
+            "found": false
+          },
+          {
+            "keyword": "constructor injection",
+            "found": false
+          },
+          {
+            "keyword": "naming",
+            "found": false
+          }
+        ]
+      },
+      {
+        "id": "ts-tc-01",
+        "status": "pass",
+        "true_positives": 2,
+        "expected_count": 2,
+        "false_positives": 0,
+        "should_not_count": 0,
+        "issues_found": 3,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "constructor",
+            "found": true
+          },
+          {
+            "keyword": "ngOnInit",
+            "found": true
+          }
+        ],
+        "false_positive_detail": []
+      },
+      {
+        "id": "ts-tc-02",
+        "status": "pass",
+        "true_positives": 3,
+        "expected_count": 3,
+        "false_positives": 0,
+        "should_not_count": 0,
+        "issues_found": 7,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "any",
+            "found": true
+          },
+          {
+            "keyword": "interface",
+            "found": true
+          },
+          {
+            "keyword": "type",
+            "found": true
+          }
+        ],
+        "false_positive_detail": []
+      },
+      {
+        "id": "ts-tc-03",
+        "status": "pass",
+        "true_positives": 3,
+        "expected_count": 3,
+        "false_positives": 0,
+        "should_not_count": 0,
+        "issues_found": 3,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "nested",
+            "found": true
+          },
+          {
+            "keyword": "subscribe",
+            "found": true
+          },
+          {
+            "keyword": "switchMap",
+            "found": true
+          }
+        ],
+        "false_positive_detail": []
+      },
+      {
+        "id": "ts-tc-04",
+        "status": "fail",
+        "true_positives": 4,
+        "expected_count": 4,
+        "false_positives": 1,
+        "should_not_count": 1,
+        "issues_found": 3,
+        "score": 0.0,
+        "expected_detail": [
+          {
+            "keyword": "unsubscribe",
+            "found": true
+          },
+          {
+            "keyword": "takeUntil",
+            "found": true
+          },
+          {
+            "keyword": "destroy",
+            "found": true
+          },
+          {
+            "keyword": "memory leak",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "constructor",
+            "found": true
+          }
+        ]
+      },
+      {
+        "id": "ts-tc-05",
+        "status": "pass",
+        "true_positives": 3,
+        "expected_count": 3,
+        "false_positives": 0,
+        "should_not_count": 0,
+        "issues_found": 4,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "HttpClient",
+            "found": true
+          },
+          {
+            "keyword": "service",
+            "found": true
+          },
+          {
+            "keyword": "delegate",
+            "found": true
+          }
+        ],
+        "false_positive_detail": []
+      },
+      {
+        "id": "ts-tc-06",
+        "status": "pass",
+        "true_positives": 3,
+        "expected_count": 3,
+        "false_positives": 0,
+        "should_not_count": 0,
+        "issues_found": 3,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "error",
+            "found": true
+          },
+          {
+            "keyword": "catchError",
+            "found": true
+          },
+          {
+            "keyword": "hardcoded",
+            "found": true
+          }
+        ],
+        "false_positive_detail": []
+      },
+      {
+        "id": "ts-tc-07",
+        "status": "fail",
+        "true_positives": 3,
+        "expected_count": 3,
+        "false_positives": 2,
+        "should_not_count": 2,
+        "issues_found": 3,
+        "score": 0.0,
+        "expected_detail": [
+          {
+            "keyword": "OnDestroy",
+            "found": true
+          },
+          {
+            "keyword": "unsubscribe",
+            "found": true
+          },
+          {
+            "keyword": "ngOnDestroy",
+            "found": true
+          }
+        ],
+        "false_positive_detail": [
+          {
+            "keyword": "constructor",
+            "found": true
+          },
+          {
+            "keyword": "ngOnInit",
+            "found": true
+          }
+        ]
+      },
+      {
+        "id": "ts-tc-08",
+        "status": "pass",
+        "true_positives": 3,
+        "expected_count": 3,
+        "false_positives": 0,
+        "should_not_count": 0,
+        "issues_found": 5,
+        "score": 1.0,
+        "expected_detail": [
+          {
+            "keyword": "hardcoded",
+            "found": true
+          },
+          {
+            "keyword": "environment",
+            "found": true
+          },
+          {
+            "keyword": "URL",
+            "found": true
+          }
+        ],
+        "false_positive_detail": []
+      },
+      {
+        "id": "ts-tc-09",
+        "status": "pass",
+        "true_positives": 2,
+        "expected_count": 3,
+        "false_positives": 0,
+        "should_not_count": 0,
+        "issues_found": 4,
+        "score": 0.667,
+        "expected_detail": [
+          {
+            "keyword": "any",
+            "found": true
+          },
+          {
+            "keyword": "HttpClient",
+            "found": false
+          },
+          {
+            "keyword": "service",
+            "found": true
+          }
+        ],
+        "false_positive_detail": []
+      },
+      {
+        "id": "ts-tc-10",
+        "status": "pass",
+        "true_positives": 0,
+        "expected_count": 0,
+        "false_positives": 0,
+        "should_not_count": 4,
+        "issues_found": 2,
+        "score": 0.6,
+        "expected_detail": [],
+        "false_positive_detail": [
+          {
+            "keyword": "subscribe",
+            "found": false
+          },
+          {
+            "keyword": "unsubscribe",
+            "found": false
+          },
+          {
+            "keyword": "HttpClient",
+            "found": false
+          },
+          {
+            "keyword": "any",
+            "found": false
+          }
+        ]
+      }
+    ]
+  }
+]

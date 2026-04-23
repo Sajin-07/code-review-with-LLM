@@ -1,0 +1,261 @@
+[
+  {
+    "id": "java-tc-01",
+    "language": "java",
+    "description": "Field injection instead of constructor injection",
+    "input_code": "@RestController\npublic class OwnerController {\n    @Autowired\n    private OwnerService ownerService;\n\n    @GetMapping(\"/owners\")\n    public List<Owner> getAll() {\n        return ownerService.findAll();\n    }\n}",
+    "expected_issues": [
+      "field injection",
+      "constructor injection"
+    ],
+    "should_not_flag": [
+      "naming convention"
+    ]
+  },
+  {
+    "id": "java-tc-02",
+    "language": "java",
+    "description": "Exposing JPA entity directly in controller response",
+    "input_code": "@RestController\npublic class PetController {\n    private final PetRepository petRepo;\n    public PetController(PetRepository petRepo) { this.petRepo = petRepo; }\n\n    @GetMapping(\"/pets/{id}\")\n    public Pet getPet(@PathVariable Long id) {\n        return petRepo.findById(id).get();\n    }\n}",
+    "expected_issues": [
+      "entity",
+      "DTO"
+    ],
+    "should_not_flag": [
+      "field injection"
+    ]
+  },
+  {
+    "id": "java-tc-03",
+    "language": "java",
+    "description": "Generic exception catch in controller",
+    "input_code": "@RestController\npublic class VisitController {\n    private final VisitService visitService;\n    public VisitController(VisitService visitService) { this.visitService = visitService; }\n\n    @PostMapping(\"/visits\")\n    public ResponseEntity<?> addVisit(@RequestBody Visit visit) {\n        try {\n            visitService.save(visit);\n            return ResponseEntity.ok(visit);\n        } catch (Exception e) {\n            return ResponseEntity.status(500).body(\"Error\");\n        }\n    }\n}",
+    "expected_issues": [
+      "generic",
+      "catch",
+      "Exception"
+    ],
+    "should_not_flag": [
+      "field injection"
+    ]
+  },
+  {
+    "id": "java-tc-04",
+    "language": "java",
+    "description": "Missing null check on method parameter",
+    "input_code": "@Service\npublic class OwnerService {\n    private final OwnerRepository ownerRepo;\n    public OwnerService(OwnerRepository ownerRepo) { this.ownerRepo = ownerRepo; }\n\n    public Owner findByName(String name) {\n        return ownerRepo.findByLastName(name).stream().findFirst().orElse(null);\n    }\n}",
+    "expected_issues": [
+      "null"
+    ],
+    "should_not_flag": [
+      "field injection"
+    ]
+  },
+  {
+    "id": "java-tc-05",
+    "language": "java",
+    "description": "Business logic in controller instead of service",
+    "input_code": "@RestController\npublic class PetController {\n    private final PetRepository petRepo;\n    private final OwnerRepository ownerRepo;\n    public PetController(PetRepository petRepo, OwnerRepository ownerRepo) {\n        this.petRepo = petRepo;\n        this.ownerRepo = ownerRepo;\n    }\n\n    @PostMapping(\"/owners/{ownerId}/pets\")\n    public ResponseEntity<Pet> addPet(@PathVariable Long ownerId, @RequestBody Pet pet) {\n        Owner owner = ownerRepo.findById(ownerId).orElseThrow();\n        pet.setOwner(owner);\n        pet.setRegistrationDate(LocalDate.now());\n        if (pet.getName() == null || pet.getName().isBlank()) {\n            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, \"name required\");\n        }\n        petRepo.save(pet);\n        return ResponseEntity.ok(pet);\n    }\n}",
+    "expected_issues": [
+      "business logic",
+      "controller",
+      "service"
+    ],
+    "should_not_flag": [
+      "field injection"
+    ]
+  },
+  {
+    "id": "java-tc-06",
+    "language": "java",
+    "description": "Vague method and parameter names",
+    "input_code": "@Service\npublic class DataService {\n    private final OwnerRepository repo;\n    public DataService(OwnerRepository repo) { this.repo = repo; }\n\n    public List<Owner> get(String s, int t) {\n        var l = repo.findAll();\n        return l.stream().filter(o -> o.getName().contains(s)).limit(t).toList();\n    }\n}",
+    "expected_issues": [
+      "naming",
+      "intention"
+    ],
+    "should_not_flag": [
+      "field injection"
+    ]
+  },
+  {
+    "id": "java-tc-07",
+    "language": "java",
+    "description": "Missing @Valid on @RequestBody",
+    "input_code": "@RestController\npublic class OwnerController {\n    private final OwnerService ownerService;\n    public OwnerController(OwnerService ownerService) { this.ownerService = ownerService; }\n\n    @PostMapping(\"/owners\")\n    public ResponseEntity<OwnerDto> create(@RequestBody OwnerDto dto) {\n        return ResponseEntity.status(HttpStatus.CREATED).body(ownerService.create(dto));\n    }\n}",
+    "expected_issues": [
+      "@Valid",
+      "validation"
+    ],
+    "should_not_flag": [
+      "field injection",
+      "constructor injection"
+    ]
+  },
+  {
+    "id": "java-tc-08",
+    "language": "java",
+    "description": "Hardcoded URL in service",
+    "input_code": "@Service\npublic class NotificationService {\n    private final RestTemplate restTemplate;\n    public NotificationService(RestTemplate restTemplate) { this.restTemplate = restTemplate; }\n\n    public void sendAlert(String message) {\n        restTemplate.postForObject(\"http://localhost:8080/api/alerts\", message, String.class);\n    }\n}",
+    "expected_issues": [
+      "hardcoded",
+      "URL"
+    ],
+    "should_not_flag": [
+      "field injection"
+    ]
+  },
+  {
+    "id": "java-tc-09",
+    "language": "java",
+    "description": "Controller returns wrong HTTP status",
+    "input_code": "@RestController\npublic class VetController {\n    private final VetService vetService;\n    public VetController(VetService vetService) { this.vetService = vetService; }\n\n    @PostMapping(\"/vets\")\n    public ResponseEntity<VetDto> create(@Valid @RequestBody VetDto dto) {\n        VetDto created = vetService.create(dto);\n        return ResponseEntity.ok(created);\n    }\n}",
+    "expected_issues": [
+      "status",
+      "201",
+      "CREATED"
+    ],
+    "should_not_flag": [
+      "field injection",
+      "@Valid"
+    ]
+  },
+  {
+    "id": "java-tc-10",
+    "language": "java",
+    "description": "Clean code - should find no major issues",
+    "input_code": "@RestController\npublic class SpecialtyController {\n    private final SpecialtyService specialtyService;\n\n    public SpecialtyController(SpecialtyService specialtyService) {\n        this.specialtyService = specialtyService;\n    }\n\n    @GetMapping(\"/specialties\")\n    public ResponseEntity<List<SpecialtyDto>> findAll() {\n        return ResponseEntity.ok(specialtyService.findAll());\n    }\n\n    @GetMapping(\"/specialties/{id}\")\n    public ResponseEntity<SpecialtyDto> findById(@PathVariable Long id) {\n        return ResponseEntity.ok(specialtyService.findById(id));\n    }\n}",
+    "expected_issues": [],
+    "should_not_flag": [
+      "field injection",
+      "constructor injection",
+      "naming"
+    ]
+  },
+  {
+    "id": "ts-tc-01",
+    "language": "typescript",
+    "description": "Logic in constructor instead of ngOnInit",
+    "input_code": "export class OwnerListComponent {\n    owners: Owner[];\n\n    constructor(private ownerService: OwnerService) {\n        this.ownerService.getOwners().subscribe(data => {\n            this.owners = data;\n        });\n    }\n}",
+    "expected_issues": [
+      "constructor",
+      "ngOnInit"
+    ],
+    "should_not_flag": []
+  },
+  {
+    "id": "ts-tc-02",
+    "language": "typescript",
+    "description": "Using any type instead of interface",
+    "input_code": "export class PetService {\n    constructor(private http: HttpClient) {}\n\n    getById(id: number): Observable<any> {\n        return this.http.get<any>(`/api/pets/${id}`);\n    }\n\n    update(pet: any): Observable<any> {\n        return this.http.put<any>(`/api/pets/${pet.id}`, pet);\n    }\n}",
+    "expected_issues": [
+      "any",
+      "interface",
+      "type"
+    ],
+    "should_not_flag": []
+  },
+  {
+    "id": "ts-tc-03",
+    "language": "typescript",
+    "description": "Nested subscribes instead of switchMap",
+    "input_code": "export class PetDetailComponent implements OnInit {\n    constructor(\n        private ownerService: OwnerService,\n        private petService: PetService\n    ) {}\n\n    ngOnInit() {\n        this.ownerService.getOwner(1).subscribe(owner => {\n            this.owner = owner;\n            this.petService.getPet(owner.petId).subscribe(pet => {\n                this.pet = pet;\n            });\n        });\n    }\n}",
+    "expected_issues": [
+      "nested",
+      "subscribe",
+      "switchMap"
+    ],
+    "should_not_flag": []
+  },
+  {
+    "id": "ts-tc-04",
+    "language": "typescript",
+    "description": "Missing unsubscribe / memory leak",
+    "input_code": "export class VetListComponent implements OnInit {\n    vets: Vet[] = [];\n\n    constructor(private vetService: VetService) {}\n\n    ngOnInit(): void {\n        this.vetService.getAll().subscribe(vets => this.vets = vets);\n    }\n}",
+    "expected_issues": [
+      "unsubscribe",
+      "takeUntil",
+      "destroy",
+      "memory leak"
+    ],
+    "should_not_flag": [
+      "constructor"
+    ]
+  },
+  {
+    "id": "ts-tc-05",
+    "language": "typescript",
+    "description": "Component uses HttpClient directly instead of service",
+    "input_code": "export class OwnerSearchComponent {\n    owners: Owner[] = [];\n    searchTerm = '';\n\n    constructor(private http: HttpClient) {}\n\n    search() {\n        this.http.get<Owner[]>('/api/owners').subscribe(all => {\n            this.owners = all.filter(o =>\n                o.lastName.toLowerCase().includes(this.searchTerm.toLowerCase())\n            );\n        });\n    }\n}",
+    "expected_issues": [
+      "HttpClient",
+      "service",
+      "delegate"
+    ],
+    "should_not_flag": []
+  },
+  {
+    "id": "ts-tc-06",
+    "language": "typescript",
+    "description": "No error handling in HTTP service",
+    "input_code": "export class VisitService {\n    private url = 'http://localhost:9966/petclinic/api/visits';\n\n    constructor(private http: HttpClient) {}\n\n    getVisits(petId: number): Observable<Visit[]> {\n        return this.http.get<Visit[]>(this.url + '?petId=' + petId);\n    }\n}",
+    "expected_issues": [
+      "error",
+      "catchError",
+      "hardcoded"
+    ],
+    "should_not_flag": []
+  },
+  {
+    "id": "ts-tc-07",
+    "language": "typescript",
+    "description": "Missing OnDestroy with manual subscription",
+    "input_code": "export class PetEditComponent implements OnInit {\n    pet: Pet;\n    private sub: Subscription;\n\n    constructor(private petService: PetService, private route: ActivatedRoute) {}\n\n    ngOnInit(): void {\n        this.sub = this.route.params.pipe(\n            switchMap(params => this.petService.getById(params.id))\n        ).subscribe(pet => this.pet = pet);\n    }\n}",
+    "expected_issues": [
+      "OnDestroy",
+      "unsubscribe",
+      "ngOnDestroy"
+    ],
+    "should_not_flag": [
+      "constructor",
+      "ngOnInit"
+    ]
+  },
+  {
+    "id": "ts-tc-08",
+    "language": "typescript",
+    "description": "Hardcoded API URL instead of environment",
+    "input_code": "export class SpecialtyService {\n    constructor(private http: HttpClient) {}\n\n    getAll(): Observable<Specialty[]> {\n        return this.http.get<Specialty[]>('http://localhost:9966/api/specialties');\n    }\n\n    create(specialty: Specialty): Observable<Specialty> {\n        return this.http.post<Specialty>('http://localhost:9966/api/specialties', specialty);\n    }\n}",
+    "expected_issues": [
+      "hardcoded",
+      "environment",
+      "URL"
+    ],
+    "should_not_flag": []
+  },
+  {
+    "id": "ts-tc-09",
+    "language": "typescript",
+    "description": "Fat component doing everything",
+    "input_code": "export class OwnerAddComponent {\n    owner: any = {};\n    errors: string[] = [];\n\n    constructor(private http: HttpClient, private router: Router) {}\n\n    save() {\n        this.errors = [];\n        if (!this.owner.firstName) this.errors.push('First name required');\n        if (!this.owner.lastName) this.errors.push('Last name required');\n        if (this.errors.length > 0) return;\n\n        this.http.post<any>('/api/owners', this.owner).subscribe(\n            () => this.router.navigate(['/owners']),\n            err => this.errors.push(err.message)\n        );\n    }\n}",
+    "expected_issues": [
+      "any",
+      "HttpClient",
+      "service"
+    ],
+    "should_not_flag": []
+  },
+  {
+    "id": "ts-tc-10",
+    "language": "typescript",
+    "description": "Clean component - should find no major issues",
+    "input_code": "export class WelcomeComponent implements OnInit {\n    title = 'Welcome to PetClinic';\n\n    constructor() {}\n\n    ngOnInit(): void {\n        // Static component, no subscriptions needed\n    }\n}",
+    "expected_issues": [],
+    "should_not_flag": [
+      "subscribe",
+      "unsubscribe",
+      "HttpClient",
+      "any"
+    ]
+  }
+]

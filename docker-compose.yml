@@ -1,0 +1,73 @@
+name: codereview
+
+# -----------------------------------------------------------------------------
+# NOTE on networking:
+#   The plan suggests network_mode: host so the API container can reach the
+#   LAN IP 192.168.14.74:8080 directly. We keep the bridge network here and
+#   point MINIMAX_URL at host.docker.internal:8080 instead — same effect,
+#   and ChromaDB's container-DNS name ("chromadb-codereview") keeps working.
+#
+#   If you prefer literal network_mode: host:
+#     1. Uncomment the `network_mode: host` line under `api` below.
+#     2. Remove the `ports:`, `networks:`, and `extra_hosts:` blocks from `api`.
+#     3. Change CHROMA_URL to http://localhost:8900.
+#     4. Change MINIMAX_URL to http://192.168.14.74:8080.
+# -----------------------------------------------------------------------------
+
+networks:
+  codereview-net:
+    driver: bridge
+
+services:
+  chromadb-codereview:
+    image: chromadb/chroma:latest
+    container_name: chromadb-codereview
+    ports:
+      - "8900:8000"
+    volumes:
+      - ./chromadb-data:/chroma/chroma
+    networks:
+      - codereview-net
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: codereview-api
+    # network_mode: host    # <-- uncomment if you want literal plan-style networking
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./app:/app/app
+      - ./ui:/app/ui
+      - ./style-guides:/app/style-guides
+      - ./eval:/app/eval
+      - ./suggestions:/app/suggestions
+      - ./config:/app/config
+    networks:
+      - codereview-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # ---- LLM server ----
+      # Minimax via llama-server (OpenAI-compatible API, port 8080 on host)
+      - MINIMAX_URL=http://host.docker.internal:8080
+      - MINIMAX_MODEL=minimax-m2.5-Q3_K_L.gguf
+      - MINIMAX_API_KEY=${MINIMAX_API_KEY}
+      - MINIMAX_TIMEOUT=2700.0
+      # ---- RAG / embeddings ----
+      # ChromaDB stays on its bridge-network DNS name
+      - CHROMA_URL=http://chromadb-codereview:8000
+      # nomic-embed-text still runs under Ollama (it's small and fast)
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - OLLAMA_EMBED_MODEL=nomic-embed-text:latest
+      # ---- App paths ----
+      - SUGGESTIONS_FILE=/app/suggestions/custom-rules.json
+      - TEAMS_FILE=/app/config/teams.json
+    depends_on:
+      - chromadb-codereview
+    restart: unless-stopped

@@ -1,0 +1,5 @@
+chromadb-data/
+repos/
+.git
+__pycache__
+*.pyc

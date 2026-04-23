@@ -1,0 +1,167 @@
+# Updated Project Structure — After Minimax Migration
+
+Legend:
+- 🆕 = new file (didn't exist before)
+- ✏️ = modified file
+- 🔄 = rewritten (same filename, different contents)
+- ⬜ = unchanged
+
+```
+code-review-assistant/
+│
+├── ✏️  docker-compose.yml              MINIMAX_URL, MINIMAX_MODEL, MINIMAX_TIMEOUT
+│                                        (removed OLLAMA_MODEL_FAST/DEEP;
+│                                         kept OLLAMA_URL for embeddings)
+├── ⬜  Dockerfile                       Unchanged
+├── ⬜  requirements.txt                 Unchanged
+├── 🆕  DECISIONS.md                     Decisions made during migration
+├── 🆕  PROJECT_STRUCTURE.md             This file
+│
+├── app/                                 Python backend (15 files)
+│   ├── ⬜  __init__.py
+│   ├── 🔄  main.py                      + 2-pass routing
+│   │                                    + /review-functions endpoint
+│   │                                    + /regenerate endpoint
+│   │                                    + dynamic max_tokens per mode
+│   │                                    + response fields: route, truncated,
+│   │                                      affected_functions
+│   │                                    - removed VRAM-swap logic in /review-deep
+│   ├── 🔄  llm_client.py                OpenAI-compat API client
+│   │                                    + estimate_output_tokens()
+│   │                                    + truncation detection & repair
+│   │                                    + 180s default timeout
+│   │                                    + structured error envelopes
+│   │                                    - VRAM swap functions kept as no-op shims
+│   ├── ✏️  prompts.py                   + RAG moved AFTER code (recency bias)
+│   │                                    + assemble_regenerate_prompt()
+│   │                                    + affected_functions in update schema
+│   ├── ✏️  deep_review.py               - removed preload/unload model calls
+│   │                                    - removed MODEL_FAST/MODEL_DEEP split
+│   │                                    + recency-biased critique prompt
+│   ├── ✏️  token_router.py              New thresholds (5k/50k/60k/reject)
+│   │                                    + mode parameter (two_pass for update)
+│   │                                    + line_count in response
+│   ├── ✏️  session.py                   + issue_fix_history dict
+│   │                                    + current_team field
+│   │                                    + make_issue_key(), record_fix_attempt(),
+│   │                                      get_fix_history()
+│   ├── ✏️  retriever.py                 TOKEN_BUDGET: 600 → 1200 (+docstring)
+│   ├── ✏️  chunker.py                   + chunk_by_class_boundaries()
+│   │                                    + _find_java_class_boundaries()
+│   │                                    + _find_ts_class_boundaries()
+│   │                                    + extract_functions_by_name()
+│   │                                    + replace_functions_in_file()
+│   ├── ⬜  call_graph.py
+│   ├── ⬜  modes.py
+│   ├── ⬜  language_detect.py
+│   ├── ⬜  suggestions.py
+│   ├── ⬜  teams.py
+│   └── ⬜  few_shots.py
+│
+├── ui/
+│   └── 🔄  index.html                   + Live token counter (green/amber/red)
+│                                        + Preflight error banner (disables submit)
+│                                        + Function selector (Pass 2 of update flow)
+│                                        + "Try different fix ↻" per-issue button
+│                                        + Partial-review (truncated) banner
+│                                        + Route tag in the results header
+│                                        - Removed "Deep Review" button
+│                                        - Removed spinner-deep styling
+│
+├── scripts/
+│   ├── 🆕  smart-extract.py             Universal LLM-based rule extractor
+│   │                                    ~580 lines, 4-step pipeline:
+│   │                                      1. walk_repo + rank_file_centrality
+│   │                                      2. structural_pass (regex, no LLM)
+│   │                                      3. call_minimax (semantic inference)
+│   │                                      4. write_chunk (same META format
+│   │                                         as extract-styles.py)
+│   │                                    Supports 12 languages via STRUCTURAL
+│   │                                    CLI: --repo, --team, --language auto,
+│   │                                         --skip-llm (debug)
+│   ├── ⬜  extract-styles.py            Kept for existing PetClinic teams
+│   │                                    (per plan §2 backward-compat)
+│   ├── ⬜  index-styles.py              Chunk format identical — no change
+│   ├── ⬜  clone-repos.sh
+│   ├── ⬜  setup-models.sh
+│   └── ⬜  requirements-host.txt
+│
+├── style-guides/
+│   └── chunks/                          Auto-generated by extract-styles.py
+│       │                                or smart-extract.py; not versioned
+│       └── (.md files)
+│
+├── config/
+│   └── ⬜  teams.json                   Team definitions
+│
+├── suggestions/
+│   └── ⬜  custom-rules.json            UI-added rules
+│
+├── eval/
+│   ├── ⬜  run-eval.py                  Timeout already 180s — no change
+│   ├── ⬜  test-cases.json
+│   └── ⬜  score-history.json
+│
+└── (repos/, chromadb-data/, .venv/      Not included in zip — regenerated
+     excluded from zip)                  locally per Setup Guide in README
+```
+
+---
+
+## Dependency graph of the changed app/ modules
+
+```
+     main.py  (orchestrator)
+        │
+        ├─► retriever.py  ──► Ollama nomic-embed + ChromaDB (unchanged)
+        │
+        ├─► prompts.py  ──► modes.py, suggestions.py (unchanged)
+        │
+        ├─► llm_client.py  ──► Minimax on llama-server (NEW wire protocol)
+        │
+        ├─► chunker.py  ──► call_graph.py (unchanged)
+        │      (+ new: chunk_by_class_boundaries,
+        │              extract_functions_by_name,
+        │              replace_functions_in_file)
+        │
+        ├─► token_router.py  (new thresholds, mode-aware)
+        │
+        ├─► deep_review.py  (simplified, no VRAM swap)
+        │
+        ├─► session.py  (+ issue_fix_history)
+        │
+        └─► teams.py, language_detect.py (unchanged)
+```
+
+---
+
+## What you need to run after pulling these files
+
+Following plan §9 Implementation Order:
+
+```bash
+# 1. Rebuild the API with the new files
+docker compose down
+docker compose up -d --build
+
+# 2. Verify health
+curl http://localhost:8090/health
+# should return {"status":"ok","version":"2.0.0-minimax","model":"minimax",...}
+
+# 3. Verify minimax is reachable from the container
+docker exec codereview-api curl -s http://host.docker.internal:8080/health
+# should return llama-server's health response
+
+# 4. Run the eval suite (target: score >= 0.708 baseline)
+python3 eval/run-eval.py -v -t "minimax-migration"
+
+# 5. Once you have a new team's repo cloned, try smart-extract
+python3 scripts/smart-extract.py \
+    --repo repos/fineract-cn-office \
+    --team team-fineract \
+    --language auto
+python3 scripts/index-styles.py
+docker compose up -d --build
+```
+
+Web UI at `http://192.168.14.74:8090` will show the new token counter under the code textarea, and the function selector + regenerate buttons will appear as you exercise the new flows.

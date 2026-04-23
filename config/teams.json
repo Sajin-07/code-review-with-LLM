@@ -1,0 +1,29 @@
+[
+  {
+    "id": "petclinic-backend",
+    "name": "PetClinic Backend",
+    "description": "Spring Boot REST API team",
+    "languages": [
+      "java"
+    ],
+    "repo": "spring-petclinic-rest"
+  },
+  {
+    "id": "petclinic-frontend",
+    "name": "PetClinic Frontend",
+    "description": "Angular frontend team",
+    "languages": [
+      "typescript"
+    ],
+    "repo": "spring-petclinic-angular"
+  },
+  {
+    "id": "shared",
+    "name": "Company-Wide (Shared)",
+    "description": "Rules that apply to all teams",
+    "languages": [
+      "all"
+    ],
+    "repo": ""
+  }
+]
