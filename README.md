@@ -689,7 +689,7 @@ LLM-extracted backend chunks reviewed manually. Verdict:
 The `${MINIMAX_API_KEY}` in docker-compose.yml reads from the shell that invokes the compose command. If empty, container starts with blank key and all reviews 401.
 
 ```bash
-export MINIMAX_API_KEY=mylocalminimax123
+export MINIMAX_API_KEY=<yourkey>
 docker compose up -d api
 ```
 
@@ -831,7 +831,7 @@ The 45-minute timeout covers all ceilings with a comfortable ~10-min safety marg
 
 ```bash
 cd /Data/Souharda_Sifat/2.1_code-review-assistant-minimax-migration
-export MINIMAX_API_KEY=mylocalminimax123
+export MINIMAX_API_KEY=<your key>
 docker compose up -d
 curl -s http://localhost:8090/health | python3 -m json.tool
 ```
